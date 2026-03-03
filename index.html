@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Poker Tutor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050810;
+      --bg-alt: #0b1020;
+      --card-bg: #182133;
+      --accent: #4f8cff;
+      --accent-soft: rgba(79, 140, 255, 0.18);
+      --danger: #ff4f6a;
+      --success: #35d697;
+      --text: #f4f6ff;
+      --muted: #9aa4c6;
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 60px rgba(5, 12, 40, 0.9);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Inter", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, #22315e 0, transparent 55%),
+        radial-gradient(circle at bottom right, #101b38 0, transparent 55%),
+        var(--bg);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(5, 8, 18, 0.95);
+      border-radius: 22px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(320px, 2.3fr);
+      gap: 0;
+      overflow: hidden;
+      backdrop-filter: blur(22px);
+    }
+
+    @media (max-width: 880px) {
+      body {
+        padding: 12px;
+      }
+      .app-shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .table-panel {
+      padding: 20px 22px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 880px) {
+      .table-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-pill {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+
+    .claude-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(79, 140, 255, 0.45);
+      background: radial-gradient(circle at top left, rgba(79,140,255,0.16), transparent 60%);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .claude-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #ffffff 0, #4f8cff 60%);
+      box-shadow: 0 0 8px rgba(79, 140, 255, 0.9);
+    }
+
+    .api-key-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(11, 16, 32, 0.9);
+      border-radius: var(--radius-pill);
+      padding: 6px 10px 6px 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .api-key-input input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .api-key-input input::placeholder {
+      color: rgba(154, 164, 198, 0.7);
+    }
+
+    .pill-btn {
+      border-radius: var(--radius-pill);
+      border: none;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--accent-soft);
+      color: var(--accent);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.12s ease;
+      box-shadow: 0 0 0 rgba(79, 140, 255, 0);
+    }
+
+    .pill-btn:hover {
+      background: rgba(79, 140, 255, 0.24);
+      transform: translateY(-0.5px);
+      box-shadow: 0 8px 20px rgba(79, 140, 255, 0.25);
+    }
+
+    .pill-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(79, 140, 255, 0.2);
+    }
+
+    .table-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 6px 0 2px;
+    }
+
+    .table {
+      width: 100%;
+      max-width: 560px;
+      aspect-ratio: 16 / 9;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 20% 0, rgba(79, 140, 255, 0.45), transparent 58%),
+        radial-gradient(circle at 80% 100%, rgba(53, 214, 151, 0.5), transparent 58%),
+        radial-gradient(circle, rgba(8, 26, 58, 0.8) 0, #040811 70%);
+      border: 2px solid rgba(217, 241, 255, 0.15);
+      box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.35),
+        0 20px 50px rgba(0, 0, 0, 0.6);
+      position: relative;
+      padding: 24px 40px;
+    }
+
+    .dealer-chip {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #ffffff 0, #d3def5 50%, #7f8db0 85%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #111525;
+      box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.45),
+        0 0 0 4px rgba(5, 10, 26, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .dealer-chip::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: inherit;
+      border: 1px dashed rgba(18, 24, 44, 0.8);
+    }
+
+    .player {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transform: translate(-50%, -50%);
+    }
+
+    .player.me {
+      bottom: 2%;
+      left: 50%;
+      transform: translate(-50%, -4%);
+    }
+
+    .player.opponent-1 {
+      top: 30%;
+      left: 10%;
+    }
+
+    .player.opponent-2 {
+      top: 30%;
+      right: 10%;
+      transform: translate(50%, -50%);
+    }
+
+    .player-label {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(14, 19, 44, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .player-label.me {
+      background: rgba(24, 63, 107, 0.96);
+      border-color: rgba(133, 189, 255, 0.7);
+    }
+
+    .chip-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #ffffff 0, #35d697 60%);
+      box-shadow: 0 0 8px rgba(53, 214, 151, 0.9);
+    }
+
+    .player-stack {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .player-action-pill {
+      font-size: 11px;
+      color: var(--accent);
+      padding: 2px 8px;
+      background: rgba(3, 18, 42, 0.9);
+      border: 1px solid rgba(79, 140, 255, 0.4);
+      border-radius: var(--radius-pill);
+      margin-top: 2px;
+      min-height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cards-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .card {
+      width: 40px;
+      height: 56px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: radial-gradient(circle at 20% 0, rgba(255,255,255,0.25), transparent 62%), #071022;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 4px 3px;
+      box-shadow:
+        0 12px 22px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(0, 0, 0, 0.8);
+      font-size: 12px;
+      color: #f4f6ff;
+    }
+
+    .card.face-down {
+      background:
+        radial-gradient(circle at 30% 20%, #ffffff 0, #cdd4ff 65%, #7079d1 100%);
+      box-shadow:
+        0 10px 20px rgba(6, 8, 30, 0.95),
+        0 0 0 1px rgba(0, 0, 0, 0.6);
+      border-color: rgba(9, 16, 69, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card.face-down::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: 8px;
+      background-image: linear-gradient(
+        135deg,
+        rgba(55, 79, 230, 0.96),
+        rgba(122, 31, 199, 0.96)
+      );
+      mask-image: radial-gradient(circle at 0 0, transparent 0, transparent 10px, black 11px);
+    }
+
+    .card-rank {
+      font-weight: 600;
+      align-self: flex-start;
+      padding-left: 1px;
+    }
+
+    .card-suit {
+      align-self: flex-end;
+      font-size: 11px;
+      padding-right: 1px;
+    }
+
+    .card-center-suit {
+      font-size: 18px;
+      opacity: 0.82;
+    }
+
+    .card.red {
+      color: #ffc2ce;
+    }
+
+    .community-area {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -46%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .community-cards {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pot-indicator {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(10, 13, 30, 0.9);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .stage-pill {
+      margin-top: 2px;
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 198, 207, 0.12);
+      color: #7de7ff;
+      border: 1px solid rgba(125, 231, 255, 0.36);
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      position: relative;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      background: rgba(10, 15, 34, 0.96);
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.1s ease, box-shadow 0.12s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.12s ease;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #407bff, #7c5cff);
+      border-color: rgba(131, 177, 255, 0.8);
+      box-shadow:
+        0 12px 25px rgba(37, 96, 255, 0.4),
+        0 0 0 1px rgba(0, 0, 0, 0.8);
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #ff4f6a, #ff8a5b);
+      border-color: rgba(255, 153, 178, 0.9);
+      box-shadow:
+        0 12px 26px rgba(255, 79, 106, 0.55),
+        0 0 0 1px rgba(0, 0, 0, 0.85);
+    }
+
+    .btn.secondary {
+      background: rgba(13, 22, 52, 0.96);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 14px 35px rgba(8, 18, 56, 0.75),
+        0 0 0 1px rgba(143, 182, 255, 0.45);
+      border-color: rgba(161, 189, 255, 0.7);
+      background: linear-gradient(135deg, #4a86ff, #8a68ff);
+    }
+
+    .btn.danger:not(:disabled):hover {
+      background: linear-gradient(135deg, #ff5b79, #ff9967);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow:
+        0 6px 18px rgba(8, 18, 56, 0.7),
+        0 0 0 1px rgba(110, 147, 230, 0.5);
+    }
+
+    .bet-input {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(7, 11, 29, 0.96);
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .bet-input label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .bet-input input {
+      width: 80px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 12px;
+      outline: none;
+    }
+
+    .bet-input input::-webkit-inner-spin-button,
+    .bet-input input::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .bet-input input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .odds-chip {
+      padding: 6px 11px;
+      border-radius: var(--radius-pill);
+      background: rgba(10, 29, 42, 0.96);
+      border: 1px solid rgba(83, 245, 178, 0.5);
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .odds-main {
+      color: var(--success);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .odds-label {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top, rgba(79, 140, 255, 0.13), transparent 60%),
+        radial-gradient(circle at bottom, rgba(53, 214, 151, 0.1), transparent 55%),
+        var(--bg-alt);
+      padding: 18px 18px 16px;
+      gap: 12px;
+    }
+
+    .tutor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .tutor-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+    }
+
+    .tutor-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .tutor-status {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(157, 206, 255, 0.4);
+      background: rgba(6, 16, 40, 0.96);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #ffffff 0, #35d697 60%);
+      box-shadow: 0 0 8px rgba(53, 214, 151, 0.9);
+    }
+
+    .status-dot.error {
+      background: radial-gradient(circle at 30% 20%, #ffffff 0, #ff4f6a 60%);
+      box-shadow: 0 0 8px rgba(255, 79, 106, 0.9);
+    }
+
+    .tutor-body {
+      flex: 1;
+      min-height: 0;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(5, 10, 26, 0.95);
+      padding: 12px 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tutor-stage-tag {
+      align-self: flex-start;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(8, 14, 34, 0.96);
+    }
+
+    .tutor-text {
+      flex: 1;
+      min-height: 80px;
+      max-height: 190px;
+      overflow-y: auto;
+      padding-right: 4px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #d6ddff;
+    }
+
+    .tutor-text::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .tutor-text::-webkit-scrollbar-thumb {
+      background: rgba(108, 134, 212, 0.7);
+      border-radius: 999px;
+    }
+
+    .tutor-text p + p {
+      margin-top: 6px;
+    }
+
+    .tutor-text ul {
+      margin: 4px 0 4px 18px;
+    }
+
+    .tutor-text li {
+      margin: 2px 0;
+    }
+
+    .tutor-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 6px;
+      margin-top: 2px;
+    }
+
+    .hint-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hint-row span {
+      font-size: 11px;
+    }
+
+    .decision-log {
+      margin-top: 4px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(8, 14, 34, 0.92);
+      padding: 8px 10px 7px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .decision-log-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .decision-entry {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      gap: 4px 8px;
+      align-items: center;
+      font-size: 11px;
+      padding: 4px 0;
+      border-bottom: 1px dashed rgba(38, 50, 90, 0.9);
+    }
+
+    .decision-entry:last-child {
+      border-bottom: none;
+    }
+
+    .decision-stage {
+      color: var(--muted);
+    }
+
+    .decision-action {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .decision-correct {
+      font-size: 11px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .decision-correct.good {
+      color: var(--success);
+    }
+
+    .decision-correct.bad {
+      color: var(--danger);
+    }
+
+    .pill {
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(7, 12, 29, 0.95);
+    }
+
+    .pill.good {
+      border-color: rgba(84, 234, 174, 0.6);
+      background: rgba(10, 46, 35, 0.96);
+    }
+
+    .pill.bad {
+      border-color: rgba(255, 124, 144, 0.8);
+      background: rgba(45, 12, 22, 0.96);
+    }
+
+    .hand-strength {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+    }
+
+    .hand-strength span.value {
+      color: var(--text);
+    }
+
+    .badge {
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .badge.live {
+      border-color: rgba(97, 214, 169, 0.6);
+      color: #7ee4b4;
+      background: rgba(6, 36, 26, 0.9);
+    }
+
+    .badge.disabled {
+      border-color: rgba(121, 129, 158, 0.7);
+      background: rgba(12, 15, 30, 0.9);
+      color: #8086a8;
+    }
+
+    .small-muted {
+      font-size: 11px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <section class="table-panel">
+      <header class="header">
+        <div class="title-group">
+          <div class="title">
+            Poker Tutor
+            <span class="claude-badge">
+              <span class="claude-dot"></span>
+              Claude-powered coach
+            </span>
+          </div>
+          <div class="title-pill">Practice no-limit Texas Hold'em decisions with live odds.</div>
+        </div>
+        <div class="api-key-input">
+          <input id="apiKeyInput" type="password" placeholder="Claude API key (optional for tutor)" />
+          <button id="saveKeyBtn" class="pill-btn" type="button">
+            Save
+          </button>
+        </div>
+      </header>
+
+      <div class="table-wrapper">
+        <div class="table">
+          <div class="dealer-chip">D</div>
+
+          <div class="community-area">
+            <div class="community-cards" id="communityCards"></div>
+            <div class="pot-indicator" id="potInfo">Pot: 0 • Stakes: 1 / 2</div>
+            <div class="stage-pill" id="stageLabel">Click Deal to start a hand</div>
+          </div>
+
+          <div class="player me">
+            <div class="player-label me">
+              <span class="chip-indicator"></span>
+              You
+              <span class="player-stack" id="heroStack">$100</span>
+            </div>
+            <div class="cards-row" id="heroCards"></div>
+            <div class="player-action-pill" id="heroAction"></div>
+          </div>
+
+          <div class="player opponent-1">
+            <div class="player-label">
+              Opponent 1
+              <span class="player-stack" id="op1Stack">$100</span>
+            </div>
+            <div class="cards-row" id="op1Cards"></div>
+            <div class="player-action-pill" id="op1Action"></div>
+          </div>
+
+          <div class="player opponent-2">
+            <div class="player-label">
+              Opponent 2
+              <span class="player-stack" id="op2Stack">$100</span>
+            </div>
+            <div class="cards-row" id="op2Cards"></div>
+            <div class="player-action-pill" id="op2Action"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <div class="btn-group">
+          <button id="dealBtn" class="btn primary" type="button">Deal new hand</button>
+          <button id="checkBtn" class="btn secondary" type="button" disabled>Check</button>
+          <button id="betBtn" class="btn secondary" type="button" disabled>Bet</button>
+          <button id="foldBtn" class="btn danger" type="button" disabled>Fold</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="bet-input">
+            <label for="betSize">Bet</label>
+            <input id="betSize" type="number" min="1" value="6" />
+          </div>
+          <div class="odds-chip">
+            <span class="odds-main" id="winProb">--%</span>
+            <span class="odds-label">equity vs 2 opponents</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="right-panel">
+      <div class="tutor-header">
+        <div>
+          <div class="tutor-title">
+            Claude Tutor
+            <span class="badge live" id="claudeStatusBadge">Live</span>
+          </div>
+          <div class="tutor-subtitle">
+            Get an explanation of the best move at each stage.
+          </div>
+        </div>
+        <div class="tutor-status" id="tutorStatus">
+          <span class="status-dot"></span>
+          <span id="tutorStatusText">Ready for the next decision</span>
+        </div>
+      </div>
+
+      <div class="tutor-body">
+        <div class="tutor-stage-tag" id="tutorStageTag">No hand yet</div>
+        <div class="tutor-text" id="tutorText">
+          <p>Click <strong>Deal new hand</strong> to start. After every decision, Claude will break down the situation, your equity, and which action is best.</p>
+          <p>Hands are heads-up against two balanced opponents in a cash game at $1 / $2 blinds with $100 stacks.</p>
+        </div>
+        <div class="tutor-footer">
+          <div class="hint-row">
+            <span>Hands are simulated only for learning – chips reset each hand.</span>
+            <span class="small-muted">Tip: Save your Claude key above to enable commentary.</span>
+          </div>
+          <div class="hand-strength">
+            Current hand:
+            <span class="value" id="handStrengthLabel">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-log" id="decisionLog">
+        <div class="decision-log-title">Decision review (current session)</div>
+        <div class="small-muted">Play a full hand to see each street, your choice, and whether Claude agreed.</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // --- Poker engine & utilities ---
+    const RANKS = ["2","3","4","5","6","7","8","9","T","J","Q","K","A"];
+    const SUITS = ["♣","♦","♥","♠"];
+    const HAND_CATEGORIES = [
+      "High card",
+      "Pair",
+      "Two pair",
+      "Three of a kind",
+      "Straight",
+      "Flush",
+      "Full house",
+      "Four of a kind",
+      "Straight flush"
+    ];
+
+    function createDeck() {
+      const deck = [];
+      for (const r of RANKS) {
+        for (const s of SUITS) {
+          deck.push({ rank: r, suit: s });
+        }
+      }
+      return deck;
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function drawCards(deck, n) {
+      const drawn = deck.splice(0, n);
+      return drawn;
+    }
+
+    function cardToString(card) {
+      return card.rank + card.suit;
+    }
+
+    function rankIndex(rank) {
+      return RANKS.indexOf(rank);
+    }
+
+    function evaluateHand7(cards7) {
+      // cards7: array of {rank, suit} length 7
+      let bestScore = null;
+      let bestMask = 0;
+      for (let a = 0; a < 7; a++) {
+        for (let b = a + 1; b < 7; b++) {
+          for (let c = b + 1; c < 7; c++) {
+            for (let d = c + 1; d < 7; d++) {
+              for (let e = d + 1; e < 7; e++) {
+                const five = [cards7[a], cards7[b], cards7[c], cards7[d], cards7[e]];
+                const score = evaluate5(five);
+                if (!bestScore || compareScore(score, bestScore) > 0) {
+                  bestScore = score;
+                  bestMask = (1 << a) | (1 << b) | (1 << c) | (1 << d) | (1 << e);
+                }
+              }
+            }
+          }
+        }
+      }
+      return { score: bestScore, usedMask: bestMask };
+    }
+
+    function evaluate5(cards) {
+      const ranks = cards.map(c => rankIndex(c.rank)).sort((a, b) => b - a);
+      const suits = cards.map(c => c.suit);
+      const rankCounts = {};
+      for (const r of ranks) {
+        rankCounts[r] = (rankCounts[r] || 0) + 1;
+      }
+
+      const uniqueRanks = [...new Set(ranks)];
+      let isFlush = new Set(suits).size === 1;
+      let isStraight = false;
+      let highStraight = -1;
+
+      if (uniqueRanks.length === 5) {
+        // normal straight
+        if (uniqueRanks[0] - uniqueRanks[4] === 4) {
+          isStraight = true;
+          highStraight = uniqueRanks[0];
+        } else {
+          // wheel A-2-3-4-5
+          const wheel = [12, 3, 2, 1, 0]; // A,5,4,3,2 indices
+          const isWheel = wheel.every(r => ranks.includes(r));
+          if (isWheel) {
+            isStraight = true;
+            highStraight = 3; // index for 5
+          }
+        }
+      }
+
+      const counts = Object.entries(rankCounts)
+        .map(([r, c]) => ({ rank: parseInt(r, 10), count: c }))
+        .sort((a, b) => {
+          if (b.count !== a.count) return b.count - a.count;
+          return b.rank - a.rank;
+        });
+
+      let category;
+      const kickers = [];
+
+      if (isStraight && isFlush) {
+        category = 8;
+        kickers.push(highStraight);
+      } else if (counts[0].count === 4) {
+        category = 7;
+        kickers.push(counts[0].rank, counts[1].rank);
+      } else if (counts[0].count === 3 && counts[1].count === 2) {
+        category = 6;
+        kickers.push(counts[0].rank, counts[1].rank);
+      } else if (isFlush) {
+        category = 5;
+        kickers.push(...ranks);
+      } else if (isStraight) {
+        category = 4;
+        kickers.push(highStraight);
+      } else if (counts[0].count === 3) {
+        category = 3;
+        kickers.push(
+          counts[0].rank,
+          ...counts.slice(1).map(c => c.rank)
+        );
+      } else if (counts[0].count === 2 && counts[1].count === 2) {
+        category = 2;
+        const highPair = Math.max(counts[0].rank, counts[1].rank);
+        const lowPair = Math.min(counts[0].rank, counts[1].rank);
+        const kickerRank = counts[2].rank;
+        kickers.push(highPair, lowPair, kickerRank);
+      } else if (counts[0].count === 2) {
+        category = 1;
+        kickers.push(
+          counts[0].rank,
+          ...counts.slice(1).map(c => c.rank)
+        );
+      } else {
+        category = 0;
+        kickers.push(...ranks);
+      }
+
+      return { category, kickers };
+    }
+
+    function compareScore(a, b) {
+      if (a.category !== b.category) return a.category - b.category;
+      const len = Math.max(a.kickers.length, b.kickers.length);
+      for (let i = 0; i < len; i++) {
+        const va = a.kickers[i] ?? -1;
+        const vb = b.kickers[i] ?? -1;
+        if (va !== vb) return va - vb;
+      }
+      return 0;
+    }
+
+    function describeScore(score) {
+      const label = HAND_CATEGORIES[score.category] ?? "Unknown";
+      return label;
+    }
+
+    function simulateEquity(heroCards, communityCards, numOpponents = 2, iterations = 600) {
+      if (heroCards.length !== 2) return { winProb: 0, label: "—" };
+      const used = new Set(heroCards.concat(communityCards).map(cardToString));
+      let wins = 0;
+      let ties = 0;
+      let total = 0;
+
+      for (let i = 0; i < iterations; i++) {
+        let deck = createDeck().filter(c => !used.has(cardToString(c)));
+        shuffle(deck);
+
+        const neededBoard = 5 - communityCards.length;
+        const simBoard = communityCards.concat(drawCards(deck, neededBoard));
+
+        const hero7 = heroCards.concat(simBoard);
+        const heroEval = evaluateHand7(hero7).score;
+
+        let heroBest = true;
+        let heroTie = false;
+
+        for (let o = 0; o < numOpponents; o++) {
+          const oppHole = drawCards(deck, 2);
+          const opp7 = oppHole.concat(simBoard);
+          const oppEval = evaluateHand7(opp7).score;
+          const cmp = compareScore(heroEval, oppEval);
+          if (cmp < 0) {
+            heroBest = false;
+            heroTie = false;
+            break;
+          } else if (cmp === 0) {
+            heroTie = true;
+          }
+        }
+
+        if (heroBest) {
+          if (heroTie) ties++;
+          else wins++;
+        }
+        total++;
+      }
+
+      const equity = (wins + ties * 0.5) / Math.max(total, 1);
+      const label = describeScore(evaluateHand7(heroCards.concat(communityCards, drawCards(createDeck().filter(c => !used.has(cardToString(c))), Math.max(0, 5 - communityCards.length)))).score);
+      return { winProb: equity, label };
+    }
+
+    // --- Game state ---
+    const STAGES = ["preflop", "flop", "turn", "river", "showdown"];
+
+    const state = {
+      deck: [],
+      heroHand: [],
+      op1Hand: [],
+      op2Hand: [],
+      community: [],
+      stage: "idle",
+      pot: 0,
+      heroStack: 100,
+      op1Stack: 100,
+      op2Stack: 100,
+      lastBet: 0,
+      decisions: [],
+      lastAdvice: null,
+      claudeEnabled: false,
+      tutorBusy: false
+    };
+
+    // --- DOM helpers ---
+    const el = id => document.getElementById(id);
+
+    const heroCardsEl = el("heroCards");
+    const op1CardsEl = el("op1Cards");
+    const op2CardsEl = el("op2Cards");
+    const communityEl = el("communityCards");
+    const potInfoEl = el("potInfo");
+    const stageLabelEl = el("stageLabel");
+    const heroActionEl = el("heroAction");
+    const op1ActionEl = el("op1Action");
+    const op2ActionEl = el("op2Action");
+    const winProbEl = el("winProb");
+    const handStrengthLabelEl = el("handStrengthLabel");
+    const decisionLogEl = el("decisionLog");
+    const tutorTextEl = el("tutorText");
+    const tutorStageTagEl = el("tutorStageTag");
+    const tutorStatusEl = el("tutorStatus");
+    const tutorStatusTextEl = el("tutorStatusText");
+    const claudeStatusBadgeEl = el("claudeStatusBadge");
+
+    // --- Rendering ---
+    function renderCard(card, faceDown = false) {
+      const div = document.createElement("div");
+      div.className = "card" + (faceDown ? " face-down" : "");
+      if (faceDown || !card) {
+        return div;
+      }
+      const isRed = card.suit === "♥" || card.suit === "♦";
+      if (isRed) div.classList.add("red");
+
+      const rankDiv = document.createElement("div");
+      rankDiv.className = "card-rank";
+      rankDiv.textContent = card.rank;
+
+      const suitDiv = document.createElement("div");
+      suitDiv.className = "card-suit";
+      suitDiv.textContent = card.suit;
+
+      const centerDiv = document.createElement("div");
+      centerDiv.className = "card-center-suit";
+      centerDiv.textContent = card.suit;
+
+      div.appendChild(rankDiv);
+      div.appendChild(centerDiv);
+      div.appendChild(suitDiv);
+      return div;
+    }
+
+    function renderHands() {
+      heroCardsEl.innerHTML = "";
+      op1CardsEl.innerHTML = "";
+      op2CardsEl.innerHTML = "";
+      communityEl.innerHTML = "";
+
+      state.heroHand.forEach(c => heroCardsEl.appendChild(renderCard(c, false)));
+      if (state.heroHand.length === 0) {
+        heroCardsEl.appendChild(renderCard(null, true));
+        heroCardsEl.appendChild(renderCard(null, true));
+      }
+
+      const opp1Count = state.op1Hand.length || 2;
+      const opp2Count = state.op2Hand.length || 2;
+      for (let i = 0; i < opp1Count; i++) {
+        op1CardsEl.appendChild(renderCard(state.op1Hand[i], true));
+      }
+      for (let i = 0; i < opp2Count; i++) {
+        op2CardsEl.appendChild(renderCard(state.op2Hand[i], true));
+      }
+
+      state.community.forEach(c => communityEl.appendChild(renderCard(c, false)));
+      const placeholders = 5 - state.community.length;
+      for (let i = 0; i < placeholders; i++) {
+        const placeholder = document.createElement("div");
+        placeholder.className = "card face-down";
+        communityEl.appendChild(placeholder);
+      }
+
+      el("heroStack").textContent = "$" + state.heroStack;
+      el("op1Stack").textContent = "$" + state.op1Stack;
+      el("op2Stack").textContent = "$" + state.op2Stack;
+      potInfoEl.textContent = `Pot: $${state.pot} • Stakes: 1 / 2`;
+
+      const stageMap = {
+        idle: "Click Deal to start a hand",
+        preflop: "Preflop – your opening decision",
+        flop: "Flop – first 3 community cards",
+        turn: "Turn – 4th community card",
+        river: "River – final community card",
+        showdown: "Showdown – hand complete"
+      };
+      stageLabelEl.textContent = stageMap[state.stage] || "";
+    }
+
+    function renderWinProb() {
+      if (state.heroHand.length < 2) {
+        winProbEl.textContent = "--%";
+        handStrengthLabelEl.textContent = "—";
+        return;
+      }
+      const { winProb, label } = simulateEquity(state.heroHand, state.community, 2, 450);
+      const pct = Math.round(winProb * 1000) / 10;
+      winProbEl.textContent = `${isNaN(pct) ? "--" : pct.toFixed(1)}%`;
+      handStrengthLabelEl.textContent = label;
+    }
+
+    function renderDecisions() {
+      decisionLogEl.innerHTML = `
+        <div class="decision-log-title">Decision review (current session)</div>
+      `;
+
+      if (state.decisions.length === 0) {
+        const div = document.createElement("div");
+        div.className = "small-muted";
+        div.textContent = "Your decisions from the last complete hand will appear here.";
+        decisionLogEl.appendChild(div);
+        return;
+      }
+
+      state.decisions.forEach(dec => {
+        const row = document.createElement("div");
+        row.className = "decision-entry";
+        const stage = document.createElement("div");
+        stage.className = "decision-stage";
+        stage.textContent = dec.stageLabel;
+        const action = document.createElement("div");
+        action.className = "decision-action";
+        action.textContent = dec.actionLabel;
+        const correctness = document.createElement("div");
+        correctness.className = "decision-correct " + (dec.correct === true ? "good" : dec.correct === false ? "bad" : "");
+        const pill = document.createElement("span");
+        pill.className = "pill " + (dec.correct === true ? "good" : dec.correct === false ? "bad" : "");
+        pill.textContent = dec.correct === true ? "Good" : dec.correct === false ? "Could improve" : "Pending";
+        correctness.appendChild(pill);
+        if (dec.explainer) {
+          const expl = document.createElement("span");
+          expl.textContent = " " + dec.explainer;
+          correctness.appendChild(expl);
+        }
+
+        row.appendChild(stage);
+        row.appendChild(action);
+        row.appendChild(correctness);
+        decisionLogEl.appendChild(row);
+      });
+    }
+
+    function setButtonsForStage() {
+      const dealBtn = el("dealBtn");
+      const checkBtn = el("checkBtn");
+      const betBtn = el("betBtn");
+      const foldBtn = el("foldBtn");
+
+      if (state.stage === "idle" || state.stage === "showdown") {
+        dealBtn.disabled = false;
+        checkBtn.disabled = true;
+        betBtn.disabled = true;
+        foldBtn.disabled = true;
+      } else {
+        dealBtn.disabled = true;
+        checkBtn.disabled = false;
+        betBtn.disabled = false;
+        foldBtn.disabled = false;
+      }
+    }
+
+    function resetActions() {
+      heroActionEl.textContent = "";
+      op1ActionEl.textContent = "";
+      op2ActionEl.textContent = "";
+    }
+
+    // --- Game flow ---
+    function startHand() {
+      state.deck = shuffle(createDeck());
+      state.heroHand = drawCards(state.deck, 2);
+      state.op1Hand = drawCards(state.deck, 2);
+      state.op2Hand = drawCards(state.deck, 2);
+      state.community = [];
+      state.stage = "preflop";
+      state.pot = 3; // blinds
+      state.lastBet = 0;
+      state.decisions = [];
+      resetActions();
+      tutorStageTagEl.textContent = "Preflop decision";
+      tutorTextEl.innerHTML = "<p>New hand dealt. Consider your opening strategy before the flop. When you're ready, choose an action and Claude will walk you through it.</p>";
+      renderHands();
+      renderWinProb();
+      setButtonsForStage();
+    }
+
+    function revealNextStreet() {
+      if (state.stage === "preflop") {
+        state.community = state.community.concat(drawCards(state.deck, 3));
+        state.stage = "flop";
+        tutorStageTagEl.textContent = "Flop decision";
+      } else if (state.stage === "flop") {
+        state.community = state.community.concat(drawCards(state.deck, 1));
+        state.stage = "turn";
+        tutorStageTagEl.textContent = "Turn decision";
+      } else if (state.stage === "turn") {
+        state.community = state.community.concat(drawCards(state.deck, 1));
+        state.stage = "river";
+        tutorStageTagEl.textContent = "River decision";
+      } else if (state.stage === "river") {
+        state.stage = "showdown";
+        tutorStageTagEl.textContent = "Showdown & review";
+      }
+      resetActions();
+      renderHands();
+      renderWinProb();
+      if (state.stage === "showdown") {
+        finishHand();
+      }
+      setButtonsForStage();
+    }
+
+    function finishHand() {
+      const hero7 = state.heroHand.concat(state.community);
+      const op1_7 = state.op1Hand.concat(state.community);
+      const op2_7 = state.op2Hand.concat(state.community);
+      const heroScore = evaluateHand7(hero7).score;
+      const op1Score = evaluateHand7(op1_7).score;
+      const op2Score = evaluateHand7(op2_7).score;
+      const cmp1 = compareScore(heroScore, op1Score);
+      const cmp2 = compareScore(heroScore, op2Score);
+      let result;
+      if (cmp1 >= 0 && cmp2 >= 0 && (cmp1 > 0 || cmp2 > 0)) {
+        result = "win";
+      } else if (cmp1 === 0 && cmp2 === 0) {
+        result = "three-way tie";
+      } else if ((cmp1 === 0 && cmp2 > 0) || (cmp2 === 0 && cmp1 > 0)) {
+        result = "chop pot";
+      } else {
+        result = "loss";
+      }
+
+      const description = describeScore(heroScore);
+      tutorTextEl.innerHTML = `
+        <p>Showdown: you hold <strong>${description}</strong> versus two opponents.</p>
+        <p>Result: <strong>${result}</strong>. Review the decision log below to see which streets you navigated well and where Claude suggested alternative lines.</p>
+      `;
+      renderDecisions();
+      setButtonsForStage();
+    }
+
+    function currentStageLabel() {
+      switch (state.stage) {
+        case "preflop": return "Preflop";
+        case "flop": return "Flop";
+        case "turn": return "Turn";
+        case "river": return "River";
+        default: return "Unknown";
+      }
+    }
+
+    function recordDecision(action, betSize) {
+      const stageLabel = currentStageLabel();
+      let actionLabel = action.charAt(0).toUpperCase() + action.slice(1);
+      if (action === "bet") {
+        actionLabel = `Bet $${betSize}`;
+      }
+      const entry = {
+        stage: state.stage,
+        stageLabel,
+        action,
+        actionLabel,
+        pot: state.pot,
+        winProbSnapshot: winProbEl.textContent,
+        correct: null,
+        explainer: null,
+        bestAction: null
+      };
+      state.decisions.push(entry);
+      return entry;
+    }
+
+    function markDecisionCorrectness(decision, bestAction, explanation) {
+      decision.bestAction = bestAction;
+      const normalizedBest = bestAction?.toLowerCase?.() ?? "";
+      const normalizedAction = decision.action.toLowerCase();
+      decision.correct = normalizedBest === normalizedAction;
+      decision.explainer = explanation || (decision.correct ? "Matches Claude's recommended line." : `Claude preferred ${bestAction}.`);
+    }
+
+    // --- Claude API integration ---
+    const API_KEY_STORAGE_KEY = "poker_tutor_claude_api_key";
+
+    function loadSavedKey() {
+      try {
+        const stored = localStorage.getItem(API_KEY_STORAGE_KEY);
+        if (stored) {
+          el("apiKeyInput").value = stored;
+          state.claudeEnabled = true;
+          claudeStatusBadgeEl.textContent = "Live";
+          claudeStatusBadgeEl.classList.remove("disabled");
+          claudeStatusBadgeEl.classList.add("live");
+        }
+      } catch (_) {
+        // ignore storage errors
+      }
+    }
+
+    async function callClaudeForAdvice(decisionEntry) {
+      const apiKey = el("apiKeyInput").value.trim();
+      if (!apiKey) {
+        state.claudeEnabled = false;
+        claudeStatusBadgeEl.textContent = "Key required";
+        claudeStatusBadgeEl.classList.remove("live");
+        claudeStatusBadgeEl.classList.add("disabled");
+        tutorStatusTextEl.textContent = "Tutor disabled – add your API key to enable commentary.";
+        tutorStatusEl.querySelector(".status-dot").classList.remove("error");
+        return;
+      }
+
+      state.claudeEnabled = true;
+      claudeStatusBadgeEl.textContent = "Live";
+      claudeStatusBadgeEl.classList.remove("disabled");
+      claudeStatusBadgeEl.classList.add("live");
+
+      if (state.tutorBusy) return;
+      state.tutorBusy = true;
+      tutorStatusTextEl.textContent = "Thinking about this spot…";
+
+      const heroCardsStr = state.heroHand.map(cardToString).join(" ");
+      const boardStr = state.community.length ? state.community.map(cardToString).join(" ") : "(no board yet)";
+      const heroEquity = winProbEl.textContent;
+      const stage = decisionEntry.stageLabel;
+      const pot = state.pot;
+      const betSize = decisionEntry.action === "bet" ? decisionEntry.actionLabel : "n/a";
+
+      const systemPrompt = "You are a world-class poker coach teaching a student how to play 6-max no-limit Texas Hold'em at $1/$2 cash stakes. You always respond in friendly, concise language and provide clear reasoning.";
+
+      const userPrompt = `
+You are helping a student review a single decision in a Texas Hold'em hand.
+
+Game context:
+- Format: 6-max online cash game
+- Stakes: $1/$2 blinds
+- Effective stacks: around $100
+- Opponents: 2 unknown but reasonably competent players
+
+Current situation:
+- Stage: ${stage}
+- Hero hole cards: ${heroCardsStr}
+- Board cards: ${boardStr}
+- Pot size before hero acts: $${pot}
+- Hero estimated equity vs 2 random opponents: ${heroEquity}
+- Hero chosen action: ${decisionEntry.actionLabel}
+
+Your task:
+1. Evaluate whether the hero's chosen action is good, acceptable, or a mistake.
+2. Recommend the single best action now (one of: "check", "bet", "fold").
+3. Explain the reasoning at a level suitable for a motivated intermediate player.
+
+Respond as a compact JSON object ONLY (no extra commentary) with the following fields:
+{
+  "best_action": "check | bet | fold",
+  "quality": "good | acceptable | mistake",
+  "summary": "one-sentence verdict on the hero's action",
+  "explanation": "2–4 sentence explanation of the best line and key concepts"
+}
+`;
+
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01"
+          },
+          body: JSON.stringify({
+            model: "claude-3-5-sonnet-20241022",
+            max_tokens: 400,
+            temperature: 0.4,
+            system: systemPrompt,
+            messages: [{ role: "user", content: userPrompt }],
+            response_format: { type: "json_object" }
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error("HTTP " + res.status);
+        }
+
+        const data = await res.json();
+        let parsed;
+        try {
+          const text = data.content?.[0]?.text ?? "";
+          parsed = JSON.parse(text);
+        } catch (_) {
+          parsed = null;
+        }
+
+        if (!parsed) {
+          throw new Error("Unexpected response format from Claude");
+        }
+
+        const bestAction = (parsed.best_action || "").toLowerCase();
+        const summary = parsed.summary || "";
+        const explanation = parsed.explanation || "";
+
+        tutorTextEl.innerHTML = `
+          <p><strong>${summary}</strong></p>
+          <p>${explanation}</p>
+        `;
+
+        markDecisionCorrectness(decisionEntry, bestAction, explanation);
+        renderDecisions();
+
+        tutorStatusTextEl.textContent = "Advice updated for this street.";
+        tutorStatusEl.querySelector(".status-dot").classList.remove("error");
+      } catch (err) {
+        console.error("Claude API error", err);
+        tutorStatusTextEl.textContent = "Error calling Claude – check your API key or CORS.";
+        tutorStatusEl.querySelector(".status-dot").classList.add("error");
+        claudeStatusBadgeEl.textContent = "Error";
+        claudeStatusBadgeEl.classList.remove("live");
+        claudeStatusBadgeEl.classList.add("disabled");
+      } finally {
+        state.tutorBusy = false;
+      }
+    }
+
+    // --- Event handlers ---
+    el("saveKeyBtn").addEventListener("click", () => {
+      const key = el("apiKeyInput").value.trim();
+      if (!key) {
+        try { localStorage.removeItem(API_KEY_STORAGE_KEY); } catch (_) {}
+        tutorStatusTextEl.textContent = "API key cleared – tutor disabled.";
+        claudeStatusBadgeEl.textContent = "Key required";
+        claudeStatusBadgeEl.classList.remove("live");
+        claudeStatusBadgeEl.classList.add("disabled");
+        return;
+      }
+      try {
+        localStorage.setItem(API_KEY_STORAGE_KEY, key);
+        tutorStatusTextEl.textContent = "API key saved – tutor ready.";
+        claudeStatusBadgeEl.textContent = "Live";
+        claudeStatusBadgeEl.classList.remove("disabled");
+        claudeStatusBadgeEl.classList.add("live");
+      } catch (_) {
+        tutorStatusTextEl.textContent = "Could not persist key (storage issue).";
+      }
+    });
+
+    el("dealBtn").addEventListener("click", () => {
+      startHand();
+    });
+
+    el("checkBtn").addEventListener("click", () => {
+      if (state.stage === "idle" || state.stage === "showdown") return;
+      heroActionEl.textContent = "Check";
+      op1ActionEl.textContent = "Check";
+      op2ActionEl.textContent = "Check";
+      const entry = recordDecision("check", 0);
+      revealNextStreet();
+      if (state.stage !== "showdown") {
+        callClaudeForAdvice(entry);
+      }
+    });
+
+    el("betBtn").addEventListener("click", () => {
+      if (state.stage === "idle" || state.stage === "showdown") return;
+      const raw = parseInt(el("betSize").value, 10);
+      const size = isNaN(raw) || raw <= 0 ? 6 : raw;
+      const actualBet = Math.min(size, state.heroStack);
+      state.heroStack -= actualBet;
+      state.pot += actualBet * 3; // very simplified: everyone calls
+      heroActionEl.textContent = `Bet $${actualBet}`;
+      op1ActionEl.textContent = "Call";
+      op2ActionEl.textContent = "Call";
+      const entry = recordDecision("bet", actualBet);
+      revealNextStreet();
+      if (state.stage !== "showdown") {
+        callClaudeForAdvice(entry);
+      }
+    });
+
+    el("foldBtn").addEventListener("click", () => {
+      if (state.stage === "idle" || state.stage === "showdown") return;
+      heroActionEl.textContent = "Fold";
+      op1ActionEl.textContent = "Wins pot";
+      op2ActionEl.textContent = "";
+      const entry = recordDecision("fold", 0);
+      state.stage = "showdown";
+      tutorStageTagEl.textContent = "Hand folded";
+      tutorTextEl.innerHTML = `
+        <p>You chose to fold before showdown. Claude will evaluate whether this was a disciplined laydown or a missed opportunity.</p>
+      `;
+      setButtonsForStage();
+      renderHands();
+      callClaudeForAdvice(entry);
+    });
+
+    // Initial render
+    loadSavedKey();
+    renderHands();
+    renderWinProb();
+    renderDecisions();
+    setButtonsForStage();
+  </script>
+</body>
+</html>
