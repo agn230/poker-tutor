@@ -83,6 +83,26 @@
       gap: 14px;
     }
 
+    .session-chip-count {
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(10, 15, 34, 0.96);
+    }
+
+    .session-chip-count.up {
+      color: var(--success);
+      border-color: rgba(53, 214, 151, 0.4);
+    }
+
+    .session-chip-count.down {
+      color: var(--danger);
+      border-color: rgba(255, 79, 106, 0.4);
+    }
+
     .title-group {
       display: flex;
       flex-direction: column;
@@ -115,7 +135,7 @@
 
     .table {
       width: 100%;
-      max-width: 560px;
+      max-width: 1400px;
       aspect-ratio: 16 / 9;
       border-radius: 999px;
       background:
@@ -164,7 +184,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
       transform: translate(-50%, -50%);
     }
 
@@ -175,30 +195,36 @@
     }
 
     .player.opponent-1 {
-      top: 30%;
-      left: 10%;
+      top: 28%;
+      left: 8%;
     }
 
     .player.opponent-2 {
-      top: 30%;
-      right: 10%;
+      top: 28%;
+      right: 8%;
       transform: translate(50%, -50%);
     }
 
     .player-label {
-      padding: 4px 10px;
-      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
       background: rgba(14, 19, 44, 0.94);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 11px;
+      font-size: 12px;
       display: inline-flex;
+      flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
+      white-space: nowrap;
     }
 
     .player-label.me {
       background: rgba(24, 63, 107, 0.96);
       border-color: rgba(133, 189, 255, 0.7);
+    }
+
+    .player-label .player-name {
+      font-weight: 500;
     }
 
     .chip-indicator {
@@ -210,22 +236,23 @@
     }
 
     .player-stack {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--muted);
+      font-variant-numeric: tabular-nums;
     }
 
     .player-action-pill {
       font-size: 11px;
       color: var(--accent);
-      padding: 2px 8px;
+      padding: 4px 12px;
       background: rgba(3, 18, 42, 0.9);
       border: 1px solid rgba(79, 140, 255, 0.4);
       border-radius: var(--radius-pill);
-      margin-top: 2px;
-      min-height: 18px;
+      min-height: 22px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      white-space: nowrap;
     }
 
     .cards-row {
@@ -304,7 +331,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 14px;
     }
 
     .community-cards {
@@ -313,18 +340,17 @@
     }
 
     .pot-indicator {
-      padding: 4px 10px;
+      padding: 6px 14px;
       border-radius: var(--radius-pill);
       border: 1px solid rgba(255, 255, 255, 0.16);
       background: rgba(10, 13, 30, 0.9);
-      font-size: 11px;
+      font-size: 12px;
       color: var(--muted);
     }
 
     .stage-pill {
-      margin-top: 2px;
-      font-size: 11px;
-      padding: 2px 10px;
+      font-size: 12px;
+      padding: 6px 14px;
       border-radius: var(--radius-pill);
       background: rgba(15, 198, 207, 0.12);
       color: #7de7ff;
@@ -408,38 +434,84 @@
         0 0 0 1px rgba(110, 147, 230, 0.5);
     }
 
-    .bet-input {
+    .bet-stepper {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
+      gap: 0;
+      padding: 4px 4px 4px 12px;
       background: rgba(7, 11, 29, 0.96);
-      border-radius: var(--radius-pill);
+      border-radius: var(--radius-md);
       border: 1px solid var(--border-subtle);
     }
 
-    .bet-input label {
+    .bet-stepper label {
       font-size: 11px;
+      color: var(--muted);
+      margin-right: 8px;
+    }
+
+    .bet-stepper-value {
+      min-width: 52px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bet-stepper-btns {
+      display: flex;
+      flex-direction: column;
+      margin-left: 4px;
+    }
+
+    .bet-stepper-btn {
+      width: 28px;
+      height: 20px;
+      padding: 0;
+      border: none;
+      background: rgba(79, 140, 255, 0.2);
+      color: var(--accent);
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background 0.15s ease;
+    }
+
+    .bet-stepper-btn:hover:not(:disabled) {
+      background: rgba(79, 140, 255, 0.4);
+    }
+
+    .bet-stepper-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .bet-stepper-btn:first-child {
+      border-radius: 4px 4px 0 0;
+    }
+
+    .bet-stepper-btn:last-child {
+      border-radius: 0 0 4px 4px;
+    }
+
+    .pot-odds-display {
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(10, 29, 42, 0.96);
+      border: 1px solid rgba(83, 245, 178, 0.35);
+      font-size: 12px;
       color: var(--muted);
     }
 
-    .bet-input input {
-      width: 80px;
-      border: none;
-      background: transparent;
-      color: var(--text);
-      font-size: 12px;
-      outline: none;
-    }
-
-    .bet-input input::-webkit-inner-spin-button,
-    .bet-input input::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-
-    .bet-input input[type="number"] {
-      -moz-appearance: textfield;
+    .pot-odds-display .pot-odds-value {
+      color: var(--success);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
     }
 
     .odds-chip {
@@ -785,6 +857,7 @@
           <div class="title">Poker Tutor</div>
           <div class="title-pill">Practice no-limit Texas Hold'em with a rules-based coach and live odds.</div>
         </div>
+        <div class="session-chip-count" id="sessionChipCount">Session: $0</div>
       </header>
 
       <div class="table-wrapper">
@@ -799,8 +872,7 @@
 
           <div class="player me">
             <div class="player-label me">
-              <span class="chip-indicator"></span>
-              You
+              <span class="player-name"><span class="chip-indicator"></span> You</span>
               <span class="player-stack" id="heroStack">$100</span>
             </div>
             <div class="cards-row" id="heroCards"></div>
@@ -809,7 +881,7 @@
 
           <div class="player opponent-1">
             <div class="player-label">
-              Opponent 1
+              <span class="player-name">Opponent 1</span>
               <span class="player-stack" id="op1Stack">$100</span>
             </div>
             <div class="cards-row" id="op1Cards"></div>
@@ -818,7 +890,7 @@
 
           <div class="player opponent-2">
             <div class="player-label">
-              Opponent 2
+              <span class="player-name">Opponent 2</span>
               <span class="player-stack" id="op2Stack">$100</span>
             </div>
             <div class="cards-row" id="op2Cards"></div>
@@ -834,14 +906,21 @@
           <button id="betBtn" class="btn secondary" type="button" disabled>Bet</button>
           <button id="foldBtn" class="btn danger" type="button" disabled>Fold</button>
         </div>
-        <div style="display:flex; align-items:center; gap:10px;">
-          <div class="bet-input">
-            <label for="betSize">Bet</label>
-            <input id="betSize" type="number" min="1" value="6" />
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap: wrap;">
+          <div class="bet-stepper">
+            <label>Bet</label>
+            <span class="bet-stepper-value" id="betStepperValue">$6</span>
+            <div class="bet-stepper-btns">
+              <button type="button" class="bet-stepper-btn" id="betStepperUp" aria-label="Increase bet">▲</button>
+              <button type="button" class="bet-stepper-btn" id="betStepperDown" aria-label="Decrease bet">▼</button>
+            </div>
           </div>
           <div class="odds-chip">
             <span class="odds-main" id="winProb">--%</span>
             <span class="odds-label">equity vs 2 opponents</span>
+          </div>
+          <div class="pot-odds-display" id="potOddsDisplay" style="display: none;">
+            Pot odds: <span class="pot-odds-value" id="potOddsValue">—</span>
           </div>
         </div>
       </div>
@@ -1074,8 +1153,12 @@
     }
 
     function getCurrentEquity() {
-      if (state.heroHand.length < 2) return 0;
+      if (state.heroHand.length < 2) {
+        state.currentEquity = 0;
+        return 0;
+      }
       const { winProb } = simulateEquity(state.heroHand, state.community, 2, 450);
+      state.currentEquity = winProb;
       return winProb;
     }
 
@@ -1129,45 +1212,45 @@
       if (state.heroHand.length < 2) {
         return { bestAction: "check", summary: "Deal a hand to get advice.", explanation: "" };
       }
-      const equity = getCurrentEquity();
-      const pct = Math.round(equity * 100);
+      const equity = state.currentEquity != null ? state.currentEquity : getCurrentEquity();
+      const pct = Math.round(equity * 1000) / 10;
       const pot = state.pot;
       const stage = state.stage;
-      const betSizeInput = parseInt(el("betSize").value, 10) || 6;
+      const betSizeInput = state.betSize ?? 6;
       const potOdds = pot > 0 ? betSizeInput / (pot + betSizeInput) : 0;
 
       if (equity >= 0.5) {
         return {
           bestAction: "bet",
           summary: "Strong hand – you have the edge.",
-          explanation: `Your win probability is ${pct}%. With this much equity, betting builds the pot and gets value. Checking is acceptable but leaves money on the table. Folding would be a mistake.`
+          explanation: `Your win probability is ${pct.toFixed(1)}%. With this much equity, betting builds the pot and gets value. Checking is acceptable but leaves money on the table. Folding would be a mistake.`
         };
       }
       if (equity >= 0.38) {
         return {
           bestAction: "bet",
           summary: "Good hand – lean toward betting.",
-          explanation: `You have ${pct}% equity. Betting is positive expected value here; checking is reasonable if you want to pot-control. Don't fold.`
+          explanation: `You have ${pct.toFixed(1)}% equity. Betting is positive expected value here; checking is reasonable if you want to pot-control. Don't fold.`
         };
       }
       if (equity >= 0.28) {
         return {
           bestAction: "check",
           summary: "Marginal hand – check to see the next card cheaply.",
-          explanation: `Your equity is ${pct}%. Checking keeps the pot small and lets you reassess on the next street. Betting can be okay in position, but folding is too tight.`
+          explanation: `Your equity is ${pct.toFixed(1)}%. Checking keeps the pot small and lets you reassess on the next street. Betting can be okay in position, but folding is too tight.`
         };
       }
       if (equity >= 0.18) {
         return {
           bestAction: "check",
           summary: "Weak hand – check or fold depending on pot odds.",
-          explanation: `Only ${pct}% equity. If the pot is small, checking to see the next card is fine. If you would need to call a big bet, folding is correct.`
+          explanation: `Only ${pct.toFixed(1)}% equity. If the pot is small, checking to see the next card is fine. If you would need to call a big bet, folding is correct.`
         };
       }
       return {
         bestAction: "fold",
         summary: "Very weak – folding is correct.",
-        explanation: `Your win probability is ${pct}%. With this little equity, continuing is negative expected value. Save your chips for better spots.`
+        explanation: `Your win probability is ${pct.toFixed(1)}%. With this little equity, continuing is negative expected value. Save your chips for better spots.`
       };
     }
 
@@ -1237,7 +1320,10 @@
       op1Stack: 100,
       op2Stack: 100,
       lastBet: 0,
-      decisions: []
+      decisions: [],
+      currentEquity: null,
+      betSize: 6,
+      sessionStartStack: 100
     };
 
     // --- DOM helpers ---
@@ -1321,6 +1407,8 @@
       el("op1Stack").textContent = "$" + state.op1Stack;
       el("op2Stack").textContent = "$" + state.op2Stack;
       potInfoEl.textContent = `Pot: $${state.pot} • Stakes: 1 / 2`;
+      updateBetStepperDisplay();
+      updateSessionDisplay();
 
       const stageMap = {
         idle: "Click Deal to start a hand",
@@ -1335,12 +1423,13 @@
 
     function renderWinProb() {
       if (state.heroHand.length < 2) {
+        state.currentEquity = null;
         winProbEl.textContent = "--%";
         handStrengthLabelEl.textContent = "—";
         return;
       }
-      const { winProb } = simulateEquity(state.heroHand, state.community, 2, 450);
-      const pct = Math.round(winProb * 1000) / 10;
+      getCurrentEquity();
+      const pct = Math.round(state.currentEquity * 1000) / 10;
       winProbEl.textContent = `${isNaN(pct) ? "--" : pct.toFixed(1)}%`;
       handStrengthLabelEl.textContent = getPlayerHandStrengthLabel();
       winProbEl.classList.add("odds-updated");
@@ -1414,6 +1503,59 @@
         betBtn.disabled = false;
         foldBtn.disabled = false;
       }
+      updatePotOddsDisplay();
+    }
+
+    function clampBetSize() {
+      const maxBet = state.heroStack;
+      const minBet = Math.min(6, state.heroStack);
+      if (state.betSize == null || state.betSize < minBet) state.betSize = minBet;
+      if (state.betSize > maxBet) state.betSize = maxBet;
+      state.betSize = minBet + Math.round((state.betSize - minBet) / 2) * 2;
+      state.betSize = Math.min(maxBet, Math.max(minBet, state.betSize));
+    }
+
+    function updateBetStepperDisplay() {
+      clampBetSize();
+      const valEl = el("betStepperValue");
+      if (valEl) valEl.textContent = "$" + (state.betSize ?? 6);
+      const upBtn = el("betStepperUp");
+      const downBtn = el("betStepperDown");
+      if (upBtn) upBtn.disabled = (state.betSize ?? 6) >= state.heroStack;
+      if (downBtn) downBtn.disabled = (state.betSize ?? 6) <= Math.min(6, state.heroStack);
+    }
+
+    function updatePotOddsDisplay() {
+      const container = el("potOddsDisplay");
+      const valueEl = el("potOddsValue");
+      if (!container || !valueEl) return;
+      const isPlayerTurn = state.stage !== "idle" && state.stage !== "showdown";
+      if (!isPlayerTurn) {
+        container.style.display = "none";
+        return;
+      }
+      container.style.display = "";
+      const toCall = state.betSize ?? 6;
+      const total = state.pot + toCall;
+      const pct = total > 0 ? Math.round((toCall / total) * 1000) / 10 : 0;
+      valueEl.textContent = "need ~" + pct.toFixed(1) + "% equity to call";
+    }
+
+    function updateSessionDisplay() {
+      const elm = el("sessionChipCount");
+      if (!elm) return;
+      const start = state.sessionStartStack ?? 100;
+      const diff = state.heroStack - start;
+      if (diff > 0) {
+        elm.textContent = "Session: +$" + diff;
+        elm.className = "session-chip-count up";
+      } else if (diff < 0) {
+        elm.textContent = "Session: -$" + Math.abs(diff);
+        elm.className = "session-chip-count down";
+      } else {
+        elm.textContent = "Session: $0";
+        elm.className = "session-chip-count";
+      }
     }
 
     function resetActions() {
@@ -1433,11 +1575,17 @@
       state.pot = 3; // blinds
       state.lastBet = 0;
       state.decisions = [];
+      state.currentEquity = null;
+      clampBetSize();
       resetActions();
       handResultBannerEl.style.display = "none";
       renderHands();
       renderWinProb();
       updateCoachPanel();
+      updateBetStepperDisplay();
+      updatePotOddsDisplay();
+      updateSessionDisplay();
+      renderDecisions();
       setButtonsForStage();
     }
 
@@ -1490,7 +1638,14 @@
       }
 
       state.decisions.forEach(evaluateDecision);
+      if (result === "win") {
+        state.heroStack += state.pot;
+      } else if (result === "chop pot" || result === "three-way tie") {
+        state.heroStack += Math.floor(state.pot / (result === "three-way tie" ? 3 : 2));
+      }
       renderHands();
+      updateSessionDisplay();
+      updateBetStepperDisplay();
       const description = describeScore(heroScore);
       handResultBannerEl.style.display = "block";
       handResultBannerEl.className = "hand-result-banner " + (result === "win" ? "win" : result === "loss" ? "loss" : "tie");
@@ -1542,6 +1697,19 @@
       startHand();
     });
 
+    el("betStepperUp").addEventListener("click", () => {
+      const maxBet = state.heroStack;
+      state.betSize = Math.min(maxBet, (state.betSize ?? 6) + 2);
+      updateBetStepperDisplay();
+      updatePotOddsDisplay();
+    });
+
+    el("betStepperDown").addEventListener("click", () => {
+      state.betSize = Math.max(6, (state.betSize ?? 6) - 2);
+      updateBetStepperDisplay();
+      updatePotOddsDisplay();
+    });
+
     el("checkBtn").addEventListener("click", () => {
       if (state.stage === "idle" || state.stage === "showdown") return;
       heroActionEl.textContent = "Check";
@@ -1555,8 +1723,7 @@
 
     el("betBtn").addEventListener("click", () => {
       if (state.stage === "idle" || state.stage === "showdown") return;
-      const raw = parseInt(el("betSize").value, 10);
-      const size = isNaN(raw) || raw <= 0 ? 6 : raw;
+      const size = state.betSize ?? 6;
       const actualBet = Math.min(size, state.heroStack);
       state.heroStack -= actualBet;
       state.pot += actualBet * 3;
