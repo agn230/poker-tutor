@@ -695,7 +695,7 @@
 
     .equity-chart {
       width: 100%;
-      height: 200px;
+      height: 250px;
       display: block;
     }
 
@@ -948,12 +948,12 @@
 
     .decision-log {
       flex: 1;
-      min-height: 220px;
+      min-height: 110px;
       margin-top: 4px;
       border-radius: var(--radius-md);
       border: 1px solid rgba(255, 255, 255, 0.06);
       background: rgba(8, 14, 34, 0.92);
-      padding: 10px 12px;
+      padding: 6px 10px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -964,16 +964,16 @@
       text-transform: uppercase;
       letter-spacing: 0.14em;
       color: var(--muted);
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     .decision-entry {
       display: grid;
       grid-template-columns: 1fr 1fr 0.8fr 1.2fr;
-      gap: 8px 10px;
+      gap: 4px 6px;
       align-items: center;
       font-size: 12px;
-      padding: 8px 0;
+      padding: 4px 0;
       border-bottom: 1px dashed rgba(38, 50, 90, 0.9);
     }
 
@@ -1229,7 +1229,7 @@
           </div>
           <div class="equity-chart-block" id="equityChartBlock" style="display:none;">
             <div class="equity-chart-title">Equity by stage</div>
-            <svg class="equity-chart" id="equityChart" viewBox="0 0 240 200" preserveAspectRatio="none" aria-label="Equity by stage chart"></svg>
+            <svg class="equity-chart" id="equityChart" viewBox="0 0 240 250" preserveAspectRatio="none" aria-label="Equity by stage chart"></svg>
           </div>
         </div>
       </div>
@@ -1772,7 +1772,7 @@
         return;
       }
 
-      const W = 240, H = 200;
+      const W = 240, H = 250;
       const padL = 34, padR = 12, padT = 12, padB = 28;
       const plotW = W - padL - padR;
       const plotH = H - padT - padB;
