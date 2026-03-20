@@ -695,8 +695,11 @@
 
     .equity-chart {
       width: 100%;
+      max-width: 380px;
       height: 250px;
       display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .mini-cards {
@@ -1229,7 +1232,7 @@
           </div>
           <div class="equity-chart-block" id="equityChartBlock" style="display:none;">
             <div class="equity-chart-title">Equity by stage</div>
-            <svg class="equity-chart" id="equityChart" viewBox="0 0 240 250" preserveAspectRatio="none" aria-label="Equity by stage chart"></svg>
+            <svg class="equity-chart" id="equityChart" viewBox="0 0 240 250" preserveAspectRatio="xMidYMid meet" aria-label="Equity by stage chart"></svg>
           </div>
         </div>
       </div>
