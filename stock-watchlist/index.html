@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stock Watchlist</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --panel: #111111;
+      --border: #1f1f1f;
+      --text: #e8e8e8;
+      --muted: #6b6b6b;
+      --accent-pos: #00ff88;
+      --accent-neg: #ff4444;
+      --grid: #1a1a1a;
+      --font: "SF Mono", "Fira Code", "Consolas", "Liberation Mono", Menlo, Courier, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .shell {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 2rem;
+    }
+
+    header.top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .add-row {
+      display: flex;
+      gap: 0.5rem;
+      flex: 1;
+      min-width: 220px;
+      max-width: 420px;
+    }
+
+    .add-row input {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 0.5rem 0.65rem;
+      outline: none;
+    }
+
+    .add-row input:focus {
+      border-color: var(--accent-pos);
+    }
+
+    .add-row button {
+      background: transparent;
+      border: 1px solid var(--accent-pos);
+      color: var(--accent-pos);
+      font-family: inherit;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+
+    .add-row button:hover {
+      background: rgba(0, 255, 136, 0.08);
+    }
+
+    .hint {
+      width: 100%;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: -0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #watchlist {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 1rem 1rem 0.85rem;
+      position: relative;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card.loading::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 255, 136, 0.04),
+        transparent
+      );
+      animation: shimmer 1.2s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .symbol {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+
+    .name {
+      font-size: 11px;
+      color: var(--muted);
+      max-width: 220px;
+    }
+
+    .remove {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 0.15rem;
+    }
+
+    .remove:hover {
+      color: var(--accent-neg);
+    }
+
+    .price-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .price {
+      font-size: 1.35rem;
+      font-weight: 600;
+    }
+
+    .change {
+      font-size: 12px;
+    }
+
+    .pos {
+      color: var(--accent-pos);
+    }
+
+    .neg {
+      color: var(--accent-neg);
+    }
+
+    .range-section {
+      margin-bottom: 0.85rem;
+    }
+
+    .range-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .range-track {
+      position: relative;
+      height: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0;
+    }
+
+    .range-marker {
+      position: absolute;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      margin-top: -5px;
+      margin-left: -5px;
+      border-radius: 50%;
+      background: var(--accent-pos);
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 0 1px var(--border);
+    }
+
+    .range-values {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.35rem;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .range-values .cur {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.35rem 0.75rem;
+      font-size: 11px;
+      margin-bottom: 0.65rem;
+    }
+
+    .metric span:first-child {
+      color: var(--muted);
+      margin-right: 0.35rem;
+    }
+
+    .chart-wrap {
+      border-top: 1px solid var(--border);
+      margin: 0 -1rem;
+      padding: 0.65rem 1rem 0.35rem;
+      background: var(--bg);
+    }
+
+    .chart-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    canvas.price-chart {
+      display: block;
+      width: 100%;
+      height: 140px;
+    }
+
+    .error-state {
+      color: var(--accent-neg);
+      font-size: 12px;
+      padding: 0.5rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="top">
+      <h1>Watchlist</h1>
+      <div class="add-row">
+        <input
+          id="tickerInput"
+          type="text"
+          placeholder="TICKER"
+          maxlength="12"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="button" id="addBtn">Add</button>
+      </div>
+    </header>
+    <p class="hint">
+      Market data from Finnhub (browser requests; no proxy).
+    </p>
+    <div id="watchlist"></div>
+  </div>
+
+  <script>
+    /**
+     * Stock watchlist — Bloomberg-style terminal UI, vanilla JS.
+     * Data: Finnhub (quote, profile, metrics) + Yahoo v8 chart for 5y weekly series (allorigins CORS proxy).
+     */
+    const FINNHUB_KEY = "d799g19r01qqpmhfun00d799g19r01qqpmhfun0g";
+    const FINNHUB_BASE = "https://finnhub.io/api/v1";
+    const ALLORIGINS_RAW = "https://api.allorigins.win/raw?url=";
+
+    const STORAGE_KEY = "stock_watchlist_tickers_v1";
+    const DEFAULT_TICKERS = ["AAPL", "MSFT", "NVDA", "JPM", "KO"];
+
+    const $watchlist = document.getElementById("watchlist");
+    const $input = document.getElementById("tickerInput");
+    const $addBtn = document.getElementById("addBtn");
+
+    /** Finnhub URLs for a ticker: quote, profile, basic metrics. */
+    function finnhubUrls(symbol) {
+      const s = encodeURIComponent(symbol);
+      const t = encodeURIComponent(FINNHUB_KEY);
+      return {
+        quote: `${FINNHUB_BASE}/quote?symbol=${s}&token=${t}`,
+        profile: `${FINNHUB_BASE}/stock/profile2?symbol=${s}&token=${t}`,
+        metric: `${FINNHUB_BASE}/stock/metric?symbol=${s}&metric=all&token=${t}`,
+      };
+    }
+
+    /** Yahoo 5y weekly chart URL wrapped in allorigins (CORS) — chart data only. */
+    function yahooWeeklyChartProxyUrl(ticker) {
+      const yahoo =
+        "https://query1.finance.yahoo.com/v8/finance/chart/" +
+        encodeURIComponent(ticker) +
+        "?interval=1wk&range=5y";
+      return ALLORIGINS_RAW + encodeURIComponent(yahoo);
+    }
+
+    function getStoredTickers() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [...DEFAULT_TICKERS];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || !parsed.length) return [...DEFAULT_TICKERS];
+        return parsed.map((t) => String(t).trim().toUpperCase()).filter(Boolean);
+      } catch {
+        return [...DEFAULT_TICKERS];
+      }
+    }
+
+    function saveTickers(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function num(v) {
+      if (v == null || typeof v !== "number" || Number.isNaN(v)) return null;
+      return v;
+    }
+
+    function formatPrice(n, currency) {
+      if (n == null || Number.isNaN(n)) return "—";
+      const c = currency || "USD";
+      try {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: c,
+          maximumFractionDigits: 2,
+        }).format(n);
+      } catch {
+        return n.toFixed(2);
+      }
+    }
+
+    function formatCompact(n) {
+      if (n == null || Number.isNaN(n)) return "—";
+      const abs = Math.abs(n);
+      const sign = n < 0 ? "-" : "";
+      if (abs >= 1e12) return sign + (abs / 1e12).toFixed(2) + "T";
+      if (abs >= 1e9) return sign + (abs / 1e9).toFixed(2) + "B";
+      if (abs >= 1e6) return sign + (abs / 1e6).toFixed(2) + "M";
+      if (abs >= 1e3) return sign + (abs / 1e3).toFixed(2) + "K";
+      return sign + abs.toFixed(2);
+    }
+
+    function formatPct(p) {
+      if (p == null || Number.isNaN(p)) return "—";
+      const sign = p > 0 ? "+" : "";
+      return sign + p.toFixed(2) + "%";
+    }
+
+    async function fetchJson(url) {
+      const res = await fetch(url, { credentials: "omit" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      if (data && typeof data.error === "string") throw new Error(data.error);
+      return data;
+    }
+
+    /** Returns null on HTTP error, Finnhub { error: string }, or JSON parse failure (used for Yahoo-via-proxy chart only). */
+    async function fetchJsonSoft(url) {
+      try {
+        const res = await fetch(url, { credentials: "omit" });
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (data && typeof data.error === "string") return null;
+        return data;
+      } catch {
+        return null;
+      }
+    }
+
+    /** Yahoo v8 finance/chart → [{ t, c }] for drawPriceChart (Unix t, close c). */
+    function seriesFromYahooChart(chartJson) {
+      if (!chartJson || !chartJson.chart || chartJson.chart.error) return [];
+      const res = chartJson.chart.result && chartJson.chart.result[0];
+      if (!res) return [];
+      const ts = res.timestamp || [];
+      const closes =
+        (res.indicators &&
+          res.indicators.quote &&
+          res.indicators.quote[0] &&
+          res.indicators.quote[0].close) ||
+        [];
+      const series = [];
+      for (let i = 0; i < ts.length; i++) {
+        const c = closes[i];
+        if (c != null && !Number.isNaN(c)) series.push({ t: ts[i], c });
+      }
+      return series;
+    }
+
+    /** True when Finnhub has no real quote (unknown symbol / halted). */
+    function quoteIsEmpty(q) {
+      if (!q) return true;
+      const c = num(q.c);
+      const pc = num(q.pc);
+      return (c == null || c === 0) && (pc == null || pc === 0);
+    }
+
+    /**
+     * Draw 5y weekly line chart: green stroke, subtle grid, year ticks, price axis.
+     * chartSurfaces: registered canvases for debounced resize redraws.
+     */
+    const chartSurfaces = [];
+
+    let chartResizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(chartResizeTimer);
+      chartResizeTimer = setTimeout(() => {
+        for (const { canvas, series } of chartSurfaces) {
+          if (canvas.isConnected) drawPriceChart(canvas, series);
+        }
+      }, 120);
+    });
+
+    function drawPriceChart(canvas, series) {
+      const ctx = canvas.getContext("2d");
+      const w = (canvas.width = canvas.clientWidth * devicePixelRatio);
+      const h = (canvas.height = canvas.clientHeight * devicePixelRatio);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      const padL = 48 * devicePixelRatio;
+      const padR = 10 * devicePixelRatio;
+      const padT = 12 * devicePixelRatio;
+      const padB = 28 * devicePixelRatio;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      if (!series.length) {
+        ctx.fillStyle = "#6b6b6b";
+        ctx.font = `${11 * devicePixelRatio}px monospace`;
+        ctx.fillText("No chart data", padL, padT + plotH / 2);
+        return;
+      }
+
+      const prices = series.map((p) => p.c);
+      let minP = Math.min(...prices);
+      let maxP = Math.max(...prices);
+      if (minP === maxP) {
+        minP *= 0.99;
+        maxP *= 1.01;
+      }
+      const padY = (maxP - minP) * 0.06 || 0.01;
+      minP -= padY;
+      maxP += padY;
+
+      const t0 = series[0].t;
+      const t1 = series[series.length - 1].t;
+
+      function xScale(t) {
+        return padL + ((t - t0) / (t1 - t0 || 1)) * plotW;
+      }
+
+      function yScale(price) {
+        return padT + (1 - (price - minP) / (maxP - minP || 1)) * plotH;
+      }
+
+      // Grid (horizontal)
+      ctx.strokeStyle = "#1a1a1a";
+      ctx.lineWidth = devicePixelRatio;
+      const gridLines = 4;
+      for (let i = 0; i <= gridLines; i++) {
+        const gy = padT + (plotH * i) / gridLines;
+        ctx.beginPath();
+        ctx.moveTo(padL, gy);
+        ctx.lineTo(padL + plotW, gy);
+        ctx.stroke();
+      }
+
+      // Vertical grid at year boundaries
+      const startYear = new Date(t0 * 1000).getUTCFullYear();
+      const endYear = new Date(t1 * 1000).getUTCFullYear();
+      ctx.strokeStyle = "#141414";
+      for (let y = startYear; y <= endYear; y++) {
+        const jan = Date.UTC(y, 0, 1) / 1000;
+        if (jan < t0 || jan > t1) continue;
+        const gx = xScale(jan);
+        ctx.beginPath();
+        ctx.moveTo(gx, padT);
+        ctx.lineTo(gx, padT + plotH);
+        ctx.stroke();
+      }
+
+      // Y-axis labels
+      ctx.fillStyle = "#6b6b6b";
+      ctx.font = `${10 * devicePixelRatio}px monospace`;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (let i = 0; i <= gridLines; i++) {
+        const price = maxP - ((maxP - minP) * i) / gridLines;
+        const gy = padT + (plotH * i) / gridLines;
+        ctx.fillText(price.toFixed(2), padL - 6 * devicePixelRatio, gy);
+      }
+
+      // Line
+      ctx.strokeStyle = "#00ff88";
+      ctx.lineWidth = 1.5 * devicePixelRatio;
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      for (let i = 0; i < series.length; i++) {
+        const px = xScale(series[i].t);
+        const py = yScale(series[i].c);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // X-axis: years
+      ctx.fillStyle = "#6b6b6b";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      for (let y = startYear; y <= endYear; y++) {
+        const jan = Date.UTC(y, 0, 1) / 1000;
+        if (jan < t0 || jan > t1) continue;
+        const gx = xScale(jan);
+        ctx.fillText(String(y), gx, padT + plotH + 6 * devicePixelRatio);
+      }
+    }
+
+    function createCard(ticker) {
+      const card = document.createElement("article");
+      card.className = "card loading";
+      card.dataset.ticker = ticker;
+      card.innerHTML = `
+        <div class="card-header">
+          <div>
+            <div class="symbol">${ticker}</div>
+            <div class="name">…</div>
+          </div>
+          <button type="button" class="remove" aria-label="Remove ${ticker}">×</button>
+        </div>
+        <div class="body-placeholder">
+          <div class="price-row">
+            <span class="price">—</span>
+            <span class="change">—</span>
+          </div>
+        </div>
+      `;
+      card.querySelector(".remove").addEventListener("click", () => removeTicker(ticker));
+      return card;
+    }
+
+    function renderError(card, ticker) {
+      card.classList.remove("loading");
+      card.innerHTML = `
+        <div class="card-header">
+          <div>
+            <div class="symbol">${ticker}</div>
+            <div class="name">—</div>
+          </div>
+          <button type="button" class="remove" aria-label="Remove ${ticker}">×</button>
+        </div>
+        <div class="error-state">Could not load data</div>
+      `;
+      card.querySelector(".remove").addEventListener("click", () => removeTicker(ticker));
+      requestAnimationFrame(() => card.classList.add("visible"));
+    }
+
+    function removeTicker(ticker) {
+      const list = getStoredTickers().filter((t) => t !== ticker);
+      saveTickers(list);
+      const el = $watchlist.querySelector(`[data-ticker="${ticker}"]`);
+      if (el) el.remove();
+    }
+
+    async function loadCardData(card, ticker) {
+      const u = finnhubUrls(ticker);
+      let quote;
+      let profile;
+      let metric;
+      let yahooChartJson;
+
+      try {
+        [quote, profile, metric, yahooChartJson] = await Promise.all([
+          fetchJson(u.quote),
+          fetchJson(u.profile),
+          fetchJson(u.metric),
+          fetchJsonSoft(yahooWeeklyChartProxyUrl(ticker)),
+        ]);
+      } catch {
+        renderError(card, ticker);
+        return;
+      }
+
+      if (quoteIsEmpty(quote)) {
+        renderError(card, ticker);
+        return;
+      }
+
+      const wSeries = seriesFromYahooChart(yahooChartJson);
+      const m = (metric && metric.metric) || {};
+      const currency =
+        (profile && typeof profile.currency === "string" && profile.currency) ||
+        "USD";
+      const name =
+        (profile && typeof profile.name === "string" && profile.name) || ticker;
+
+      const price = num(quote.c);
+      const pc = num(quote.pc);
+      let change = num(quote.d);
+      let pct = num(quote.dp);
+      if (change == null && price != null && pc != null) change = price - pc;
+      if (pct == null && change != null && pc) pct = (change / pc) * 100;
+
+      const low52 = num(m["52WeekLow"]);
+      const high52 = num(m["52WeekHigh"]);
+
+      const pe = num(m.peTTM) ?? num(m.peAnnual);
+      const forwardPe = num(m.forwardPE);
+      const divYield =
+        num(m.dividendYieldIndicatedAnnual) ??
+        num(m.currentDividendYieldTTM);
+
+      let marketCap = null;
+      if (profile && typeof profile.marketCapitalization === "number") {
+        marketCap = profile.marketCapitalization * 1e6;
+      }
+
+      let markerPct = 0.5;
+      if (
+        price != null &&
+        low52 != null &&
+        high52 != null &&
+        high52 > low52
+      ) {
+        markerPct = (price - low52) / (high52 - low52);
+        markerPct = Math.max(0, Math.min(1, markerPct));
+      }
+
+      const distBelowHigh =
+        price != null && high52
+          ? ((high52 - price) / high52) * 100
+          : null;
+
+      const chClass =
+        change == null ? "" : change >= 0 ? "pos" : "neg";
+      const chSign = change > 0 ? "+" : "";
+
+      card.classList.remove("loading");
+      card.innerHTML = `
+        <div class="card-header">
+          <div>
+            <div class="symbol">${ticker}</div>
+            <div class="name"></div>
+          </div>
+          <button type="button" class="remove" aria-label="Remove ${ticker}">×</button>
+        </div>
+        <div class="price-row">
+          <span class="price">${formatPrice(price, currency)}</span>
+          <span class="change ${chClass}">
+            ${
+              change == null || pct == null
+                ? "—"
+                : chSign +
+                  formatPrice(change, currency) +
+                  " (" +
+                  formatPct(pct) +
+                  ")"
+            }
+          </span>
+        </div>
+        <div class="range-section">
+          <div class="range-label">52-week range</div>
+          <div class="range-track">
+            <div class="range-marker" style="left: ${markerPct * 100}%"></div>
+          </div>
+          <div class="range-values">
+            <span>${formatPrice(low52, currency)}</span>
+            <span class="cur">${formatPrice(price, currency)}</span>
+            <span>${formatPrice(high52, currency)}</span>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span>P/E</span><span>${pe != null ? pe.toFixed(2) : "—"}</span></div>
+          <div class="metric"><span>Fwd P/E</span><span>${forwardPe != null ? forwardPe.toFixed(2) : "—"}</span></div>
+          <div class="metric"><span>Div yield</span><span>${divYield != null ? divYield.toFixed(2) + "%" : "—"}</span></div>
+          <div class="metric"><span>Mkt cap</span><span>${marketCap != null ? formatCompact(marketCap) : "—"}</span></div>
+          <div class="metric" style="grid-column: 1 / -1">
+            <span>Below 52w high</span>
+            <span>${distBelowHigh != null ? distBelowHigh.toFixed(2) + "%" : "—"}</span>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-title">5-year weekly</div>
+          <canvas class="price-chart" width="400" height="140"></canvas>
+        </div>
+      `;
+
+      card.querySelector(".name").textContent = name;
+      card.querySelector(".remove").addEventListener("click", () => removeTicker(ticker));
+
+      const canvas = card.querySelector("canvas.price-chart");
+      chartSurfaces.push({ canvas, series: wSeries });
+      drawPriceChart(canvas, wSeries);
+
+      requestAnimationFrame(() => card.classList.add("visible"));
+    }
+
+    function refreshAll() {
+      chartSurfaces.length = 0;
+      $watchlist.innerHTML = "";
+      const tickers = getStoredTickers();
+      for (const t of tickers) {
+        const card = createCard(t);
+        $watchlist.appendChild(card);
+        loadCardData(card, t);
+      }
+    }
+
+    function addTicker() {
+      const raw = $input.value.trim().toUpperCase();
+      if (!raw || !/^[A-Z0-9.\-^]+$/.test(raw)) {
+        $input.focus();
+        return;
+      }
+      const list = getStoredTickers();
+      if (list.includes(raw)) {
+        $input.value = "";
+        return;
+      }
+      list.push(raw);
+      saveTickers(list);
+      $input.value = "";
+      const card = createCard(raw);
+      $watchlist.appendChild(card);
+      loadCardData(card, raw);
+    }
+
+    $addBtn.addEventListener("click", addTicker);
+    $input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addTicker();
+    });
+
+    refreshAll();
+  </script>
+</body>
+</html>
